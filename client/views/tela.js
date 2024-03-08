@@ -1,32 +1,22 @@
 class Tela {
 	constructor () {
-		const janeiro = new Mes("janeiro");
-		janeiro.adicionarLancamento(new Lancamento("Salário", "receita", 3000));
-		janeiro.adicionarLancamento(new Lancamento("Aluguel", "despesa", 1000));
-		janeiro.adicionarLancamento(new Lancamento("Conta de Luz", "despesa", 200));
-		janeiro.adicionarLancamento(new Lancamento("Conta de Água", "despesa", 100));
-		janeiro.adicionarLancamento(new Lancamento("Internet", "despesa", 100));
-		const fevereiro = new Mes("fevereiro");
-		fevereiro.adicionarLancamento(new Lancamento("Salário", "receita", 3000));
-		fevereiro.adicionarLancamento(new Lancamento("Aluguel", "despesa", 1200));
-		fevereiro.adicionarLancamento(new Lancamento("Conta de Luz", "despesa", 250));
-		fevereiro.adicionarLancamento(new Lancamento("Conta de Água", "despesa", 100));
-		fevereiro.adicionarLancamento(new Lancamento("Internet", "despesa", 100));
-		const marco = new Mes("marco");
-		marco.adicionarLancamento(new Lancamento("Salário", "receita", 4000));
-		marco.adicionarLancamento(new Lancamento("Aluguel", "despesa", 1200));
-		marco.adicionarLancamento(new Lancamento("Conta de Luz", "despesa", 200));
-		marco.adicionarLancamento(new Lancamento("Conta de Água", "despesa", 100));
-		marco.adicionarLancamento(new Lancamento("Internet", "despesa", 200));
-		const abril = new Mes("abril");
-		abril.adicionarLancamento(new Lancamento("Salário", "receita", 4000));
+		this.init();
+	}
+	
+	async init () {
+		const response = await fetch("http://localhost:3000/api/lancamentos");
+		const lancamentos = await response.json();
 		const ano = new Ano();
-		ano.adicionarMes(janeiro);
-		ano.adicionarMes(fevereiro);
-		ano.adicionarMes(marco);
-		ano.adicionarMes(abril);
+		ano.adicionarMes(new Mes("janeiro"));
+		ano.adicionarMes(new Mes("fevereiro"));
+		ano.adicionarMes(new Mes("marco"));
+		ano.adicionarMes(new Mes("abril"));
+		for (const lancamento of lancamentos) {
+			ano.adicionarLancamento(lancamento.mes, new Lancamento(lancamento.categoria, lancamento.tipo, lancamento.valor));
+		}
 		ano.calcularSaldo();
 		this.ano = ano;
+		this.renderizar();
 	}
 
 	formatarDinheiro (valor) {
@@ -39,6 +29,7 @@ class Tela {
 		const tipo = document.getElementById("tipo");
 		const valor = document.getElementById("valor");
 		this.ano.adicionarLancamento(mes.value, new Lancamento(categoria.value, tipo.value, parseFloat(valor.value)));
+		fetch("http://localhost:3000/api/lancamentos", { method: "post", headers: { "content-type": "application/json" }, body: JSON.stringify({ mes: mes.value, categoria: categoria.value, tipo: tipo.value, valor: parseFloat(valor.value) }) });
 		this.ano.calcularSaldo();
 		this.renderizar();
 		mes.value = this.ano.meses[0].nome;
