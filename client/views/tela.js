@@ -1,9 +1,9 @@
 class Tela {
-	constructor () {
+	constructor() {
 		this.init();
 	}
-	
-	async init () {
+
+	async init() {
 		const response = await fetch("http://localhost:3000/api/lancamentos");
 		const lancamentos = await response.json();
 		const ano = new Ano();
@@ -12,18 +12,18 @@ class Tela {
 		ano.adicionarMes(new Mes("marco"));
 		ano.adicionarMes(new Mes("abril"));
 		for (const lancamento of lancamentos) {
-			ano.adicionarLancamento(lancamento.mes, new Lancamento(lancamento.categoria, lancamento.tipo, parseFloat(lancamento.valor)));
+			ano.adicionarLancamento(lancamento.mes, new Lancamento(lancamento.categoria, lancamento.tipo, lancamento.valor, lancamento.idLancamento));
 		}
 		ano.calcularSaldo();
 		this.ano = ano;
 		this.renderizar();
 	}
 
-	formatarDinheiro (valor) {
+	formatarDinheiro(valor) {
 		return new Intl.NumberFormat("pt-br", { currency: "BRL", style: "currency" }).format(valor);
 	}
 
-	adicionarLancamento () {
+	adicionarLancamento() {
 		const mes = document.getElementById("mes");
 		const categoria = document.getElementById("categoria");
 		const tipo = document.getElementById("tipo");
@@ -37,8 +37,12 @@ class Tela {
 		categoria.value = "";
 		valor.value = "";
 	}
-	
-	renderizar () {
+
+	deletarLancamento(idLancamento) {
+		fetch(`http://localhost:3000/api/lancamentos/${idLancamento}`, { method: "delete" });
+	}
+
+	renderizar() {
 		document.getElementById("app").remove();
 		const app = new Div("app");
 		const titulo = new h4("Finanças Pessoais");
@@ -63,7 +67,7 @@ class Tela {
 		form.adicionarElementoFilho(valorInputNumber.element);
 		form.adicionarElementoFilho(adicionarButton.element);
 		app.adicionarElementoFilho(form.element);
-	
+
 		const grafico = new Grafico();
 		for (const mes of this.ano.meses) {
 			grafico.adicionarColuna(mes.totalizador.saldo, mes.nome);
@@ -75,7 +79,13 @@ class Tela {
 			const tabelaLancamentos = new Tabela("tabela-lancamentos");
 			tabelaLancamentos.addRow("th", ["Categoria", "Valor"]);
 			for (const lancamento of mes.lancamentos) {
-				tabelaLancamentos.addRow("td", [lancamento.categoria, this.formatarDinheiro(lancamento.getValorString())]);
+				const button = new Button("delete-lancamento", "delete");
+				button.addListener(() => {
+					this.deletarLancamento(lancamento.idLancamento);
+					this.ano.deletarLancamento(mes, lancamento);
+					this.renderizar();
+				})
+				tabelaLancamentos.addRow("td", [lancamento.categoria, this.formatarDinheiro(lancamento.getValorString())], [button]);
 			}
 			tabelaLancamentos.addRow("th", ["Juros", this.formatarDinheiro(mes.totalizador.juros)]);
 			tabelaLancamentos.addRow("th", ["Rendimentos", this.formatarDinheiro(mes.totalizador.rendimentos)]);
