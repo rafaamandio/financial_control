@@ -6,7 +6,7 @@ const app = express();
 app.use(express.json());
 app.use("/", express.static("./client"));
 
-const connection = pgp()("postgres://default:************@ep-gentle-cherry-a4qvhr62.us-east-1.aws.neon.tech:5432/verceldb?sslmode=require");
+const connection = pgp()("postgres://postgres:root@localhost:5432/app");
 
 app.get("/api/lancamentos", async function  (req, res) {
 	const lancamentos = await connection.query("select * from financas_pessoais.lancamento", []);
