@@ -1,8 +1,8 @@
 class Lancamento {
 
 	constructor (idLancamento, mes, categoria, tipo, valor) {
-        this.idLancamento = idLancamento;
-        this.mes = mes;
+		this.idLancamento = idLancamento;
+		this.mes = mes;
 		if (tipo !== "receita" && tipo !== "despesa") {
 			throw new Error("Lançamento Inválido: Tipo deve ser receita ou despesa");
 		}
